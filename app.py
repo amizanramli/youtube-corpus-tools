@@ -199,7 +199,10 @@ st.header("4\uFE0F\u20E3 Download")
 
 out_path = Path(output_dir)
 if out_path.exists() and any(out_path.iterdir()):
-    if st.button("Prepare zip"):
+    # Build the zip once per output (cached in session state so it isn't
+    # rebuilt on every rerun) and offer it directly \u2014 no separate "prepare"
+    # click. A fresh Generate resets zip_path to None, so it's rebuilt then.
+    if not st.session_state.zip_path or not Path(st.session_state.zip_path).exists():
         zip_base = Path(f"{output_dir}_export")
         zip_path = zip_base.with_suffix(".zip")
         if zip_path.exists():
@@ -207,11 +210,10 @@ if out_path.exists() and any(out_path.iterdir()):
         shutil.make_archive(str(zip_base), "zip", out_path)
         st.session_state.zip_path = str(zip_path)
 
-    if st.session_state.zip_path and Path(st.session_state.zip_path).exists():
-        with open(st.session_state.zip_path, "rb") as f:
-            st.download_button(
-                "\u2B07\uFE0F Download all corpus files (.zip)",
-                f, file_name=Path(st.session_state.zip_path).name, mime="application/zip",
-            )
+    with open(st.session_state.zip_path, "rb") as f:
+        st.download_button(
+            "\u2B07\uFE0F Download all corpus files (.zip)",
+            f, file_name=Path(st.session_state.zip_path).name, mime="application/zip",
+        )
 else:
     st.info("Nothing generated yet \u2014 run Step 3 first.")
