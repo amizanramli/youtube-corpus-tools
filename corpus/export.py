@@ -18,6 +18,11 @@ COMMENT_COLS = [
     "like_count", "reply_count", "is_favourite", "is_pinned",
 ]
 
+# metadata fields eligible to appear as <tag value="..." /> lines in the
+# XML-tagged .txt — i.e. everything except the id (goes in the <comment>
+# opening tag) and the text itself (goes in the body)
+XML_META_FIELDS = [c for c in COMMENT_COLS if c not in ("comment_id", "text")]
+
 
 def safe_filename(text: str, max_len: int = 60) -> str:
     """Strip characters that are unsafe in filenames."""
@@ -26,9 +31,13 @@ def safe_filename(text: str, max_len: int = 60) -> str:
     return cleaned or "untitled"
 
 
-def comment_to_xml(comment: dict) -> str:
-    """NST-corpus-style tagging: <comment id="..."> + metadata tags + body + ( END )."""
-    meta_cols = [c for c in COMMENT_COLS if c not in ("comment_id", "text")]
+def comment_to_xml(comment: dict, meta_fields: list = None) -> str:
+    """NST-corpus-style tagging: <comment id="..."> + metadata tags + body + ( END ).
+
+    meta_fields: which metadata fields to include as <tag value="..." />
+    lines, in order. Defaults to all of them (XML_META_FIELDS).
+    """
+    meta_cols = XML_META_FIELDS if meta_fields is None else meta_fields
     lines = [f"<comment id={quoteattr(str(comment.get('comment_id', '')))}>"]
     for col in meta_cols:
         lines.append(f"\t<{col} value={quoteattr(str(comment.get(col, '')))} />")
@@ -41,9 +50,12 @@ def comment_to_xml(comment: dict) -> str:
     return "\n".join(lines)
 
 
-def save_video_comments(video_dir: Path, base_name: str, comments: list):
+def save_video_comments(video_dir: Path, base_name: str, comments: list,
+                         xml_meta_fields: list = None):
     """
     comments: list of dicts, each with at least the COMMENT_COLS fields.
+    xml_meta_fields: which metadata fields to include in the XML-tagged
+    .txt files (see comment_to_xml). Defaults to all of them.
     Writes xlsx + one XML txt per comment + one plain txt for the whole video.
     Returns (xlsx_path, plain_txt_path).
     """
@@ -57,7 +69,9 @@ def save_video_comments(video_dir: Path, base_name: str, comments: list):
     # ── XML-tagged txt, one file per comment ──────────────────────────────
     for c in comments:
         fname = f"{safe_filename(c.get('comment_id', ''))}.txt"
-        (video_dir / fname).write_text(comment_to_xml(c), encoding="utf-8")
+        (video_dir / fname).write_text(
+            comment_to_xml(c, meta_fields=xml_meta_fields), encoding="utf-8"
+        )
 
     # ── Plain-text txt, no tags, all comments for this video in one file ──
     plain_text = "\n\n".join(str(c.get("text", "")) for c in comments)

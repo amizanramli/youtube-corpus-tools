@@ -11,7 +11,8 @@ from . import export as ex
 
 def run_corpus_export(df: pd.DataFrame, output_dir: str,
                        log: Callable[[str], None] = print,
-                       progress: Optional[Callable[[int, int], None]] = None) -> dict:
+                       progress: Optional[Callable[[int, int], None]] = None,
+                       xml_meta_fields: Optional[list] = None) -> dict:
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -30,7 +31,9 @@ def run_corpus_export(df: pd.DataFrame, output_dir: str,
         comments = sub.to_dict(orient="records")
         log(f"[{i}/{n}] {base_name}  ({len(comments)} comments)")
 
-        xlsx_path, plain_path = ex.save_video_comments(video_dir, base_name, comments)
+        xlsx_path, plain_path = ex.save_video_comments(
+            video_dir, base_name, comments, xml_meta_fields=xml_meta_fields
+        )
         results.append({
             "video_id": vid, "title": title, "n_comments": len(comments),
             "folder": str(video_dir),

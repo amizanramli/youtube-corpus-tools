@@ -20,6 +20,8 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from corpus.concordance import collocates, kwic_search, word_frequencies
+from corpus.export import XML_META_FIELDS
 from corpus.loader import CorpusLoadError, load_table
 from corpus.pipeline import run_corpus_export
 
@@ -70,10 +72,93 @@ if uploaded is not None:
 if st.session_state.df is not None:
     st.dataframe(st.session_state.df, use_container_width=True, height=250)
 
-# ── Step 2: generate ─────────────────────────────────────────────────────────
-st.header("2\uFE0F\u20E3 Generate corpus files")
+# ── Step 2: concordance tools ──────────────────────────────────────────────────────────
+st.header("2\uFE0F\u20E3 Concordance tools")
+
+if st.session_state.df is None:
+    st.info("Upload a comments file above first.")
+else:
+    df = st.session_state.df
+    video_options = ["All videos"] + sorted(df["video_id"].astype(str).unique().tolist())
+    video_choice = st.selectbox("Video", video_options)
+    scoped = df if video_choice == "All videos" else df[df["video_id"].astype(str) == video_choice]
+    texts = scoped["text"].tolist()
+
+    tab_kwic, tab_freq, tab_collo = st.tabs(
+        ["\U0001F50D KWIC search", "\U0001F4CA Word frequency", "\U0001F517 Collocates"]
+    )
+
+    with tab_kwic:
+        col1, col2, col3 = st.columns([3, 1, 1])
+        query = col1.text_input("Search word or phrase", key="kwic_query")
+        context_chars = col2.slider("Context (chars)", 10, 100, 40)
+        whole_word = col3.checkbox("Whole word", value=True)
+        case_sensitive = st.checkbox("Case sensitive", value=False)
+
+        if query:
+            rows = scoped[["comment_id", "video_id", "text"]].to_dict(orient="records")
+            kwic_df = kwic_search(rows, query, context_chars=context_chars,
+                                   case_sensitive=case_sensitive, whole_word=whole_word)
+            if kwic_df.empty:
+                st.info(f"No matches for '{query}'.")
+            else:
+                st.caption(f"{len(kwic_df)} match(es)")
+                st.dataframe(kwic_df[["left", "match", "right", "video_id", "comment_id"]],
+                             use_container_width=True, height=300)
+                st.download_button("\u2B07\uFE0F Download matches (CSV)",
+                                    kwic_df.to_csv(index=False), file_name="kwic_results.csv",
+                                    mime="text/csv")
+        else:
+            st.caption("Enter a word or phrase above to see it in context.")
+
+    with tab_freq:
+        col1, col2, col3 = st.columns(3)
+        remove_sw = col1.checkbox("Remove stopwords", value=True, key="freq_sw")
+        min_len = col2.number_input("Min word length", min_value=1, max_value=10, value=2)
+        top_n = col3.number_input("Show top N", min_value=5, max_value=500, value=30)
+
+        freq_df = word_frequencies(texts, remove_stopwords=remove_sw,
+                                    min_len=min_len, top_n=top_n)
+        if freq_df.empty:
+            st.info("No words to count yet.")
+        else:
+            st.bar_chart(freq_df.set_index("word")["count"])
+            st.dataframe(freq_df, use_container_width=True, height=300)
+            st.download_button("\u2B07\uFE0F Download word list (CSV)",
+                                freq_df.to_csv(index=False), file_name="word_frequencies.csv",
+                                mime="text/csv")
+
+    with tab_collo:
+        col1, col2, col3 = st.columns(3)
+        node_word = col1.text_input("Node word", key="collo_node")
+        window = col2.slider("Window (words each side)", 1, 10, 5)
+        remove_sw_c = col3.checkbox("Remove stopwords", value=True, key="collo_sw")
+
+        if node_word:
+            collo_df = collocates(texts, node_word, window=window,
+                                   remove_stopwords=remove_sw_c)
+            if collo_df.empty:
+                st.info(f"No collocates found for '{node_word}'.")
+            else:
+                st.dataframe(collo_df, use_container_width=True, height=300)
+                st.download_button("\u2B07\uFE0F Download collocates (CSV)",
+                                    collo_df.to_csv(index=False), file_name="collocates.csv",
+                                    mime="text/csv")
+        else:
+            st.caption("Enter a node word above to see its collocates.")
+
+# ── Step 3: generate corpus files ────────────────────────────────────────────────────
+st.header("3\uFE0F\u20E3 Generate corpus files")
 
 output_dir = st.text_input("Output folder", value="corpus_output")
+
+xml_fields = st.multiselect(
+    "Metadata fields to include in the XML-tagged .txt files",
+    options=XML_META_FIELDS,
+    default=XML_META_FIELDS,
+    help="Applies to the per-comment <comment_id>.txt files. The .xlsx and "
+         "the plain, tag-free .txt always include every field.",
+)
 
 if st.session_state.df is None:
     st.info("Upload a comments file above first.")
@@ -90,7 +175,8 @@ else:
         with st.spinner("Writing corpus files..."):
             try:
                 result = run_corpus_export(
-                    st.session_state.df, output_dir, log=log, progress=progress_cb
+                    st.session_state.df, output_dir, log=log, progress=progress_cb,
+                    xml_meta_fields=xml_fields,
                 )
                 st.session_state.result = result
                 st.session_state.zip_path = None  # invalidate any previous zip
@@ -108,8 +194,8 @@ else:
     with st.expander("Log"):
         st.code("\n".join(st.session_state.logs) or "(no logs yet)")
 
-# ── Step 3: download ─────────────────────────────────────────────────────────
-st.header("3\uFE0F\u20E3 Download")
+# ── Step 4: download ─────────────────────────────────────────────────────────────────
+st.header("4\uFE0F\u20E3 Download")
 
 out_path = Path(output_dir)
 if out_path.exists() and any(out_path.iterdir()):
@@ -128,4 +214,4 @@ if out_path.exists() and any(out_path.iterdir()):
                 f, file_name=Path(st.session_state.zip_path).name, mime="application/zip",
             )
 else:
-    st.info("Nothing generated yet \u2014 run Step 2 first.")
+    st.info("Nothing generated yet \u2014 run Step 3 first.")

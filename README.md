@@ -2,7 +2,9 @@
 
 A Streamlit app that takes comments you've **already collected** (from
 wherever) and formats them for corpus/linguistic analysis — no scraping
-involved.
+involved. Includes built-in concordance tools (KWIC search, word frequency,
+collocates) so you can explore the comments without leaving the app, plus
+export to corpus-ready files for AntConc and similar tools.
 
 ## Setup
 
@@ -49,6 +51,20 @@ a top-level `"comments"` list, or an object with a `"videos"` list where
 each video has its own nested `"comments"` list (matches common scraper
 export shapes).
 
+## Concordance tools
+
+Once comments are uploaded, a **Concordance tools** section lets you explore
+them directly (scoped to one video or all of them):
+
+- **KWIC search** — find a word or phrase and see it in context (left/right
+  context, adjustable width, whole-word and case-sensitivity options).
+- **Word frequency** — most common words, with optional stopword removal and
+  a minimum word length.
+- **Collocates** — words that co-occur near a given node word, within an
+  adjustable window.
+
+Each tab's results can be downloaded as CSV.
+
 ## Output
 
 For **each video** in the uploaded data, a folder is created:
@@ -86,6 +102,12 @@ that video, one comment per paragraph, blank line between each, no markup
 at all. This is the one to load into AntConc or any other concordancer,
 since those tools otherwise read XML tag names and attributes as if they
 were corpus words.
+
+Before generating, you can choose which metadata fields (`video_id`,
+`is_reply`, `timestamp`, `like_count`, `reply_count`, `is_favourite`,
+`is_pinned`) appear as tags in the XML-tagged `.txt` files — useful if a
+concordancer or annotation scheme only needs a subset. The `.xlsx` and the
+plain-text export always include every field regardless of this selection.
 
 ## Project layout
 
