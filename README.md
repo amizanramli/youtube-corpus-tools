@@ -74,12 +74,14 @@ text — each with a per-video subfolder:
 corpus_output/
 ├── tagged/
 │   └── 20260103_My Video One_AAA111/
-│       ├── 20260103_My Video One_AAA111.xlsx   ← all comments, 9 columns
-│       ├── Ugz1abc.txt                          ← one comment, XML-tagged
+│       ├── 20260103_My Video One_AAA111.xlsx        ← all comments, 9 columns
+│       ├── Ugz1abc.txt                                ← one comment, XML-tagged
 │       └── Ugz2def.txt
 └── plain/
     └── 20260103_My Video One_AAA111/
-        └── 20260103_My Video One_AAA111_plain.txt  ← all comments, no tags
+        ├── 20260103_My Video One_AAA111_combined.txt  ← all comments, no tags
+        ├── Ugz1abc.txt                                 ← one comment, no tags
+        └── Ugz2def.txt
 ```
 
 **XML-tagged comment format** (`<comment_id>.txt`):
@@ -101,11 +103,12 @@ Great video! Thanks &amp; keep it up &lt;3
 </comment>
 ```
 
-**Plain-text format** (`<video>_plain.txt`) — just the raw comment text for
-that video, one comment per paragraph, blank line between each, no markup
-at all. This is the one to load into AntConc or any other concordancer,
-since those tools otherwise read XML tag names and attributes as if they
-were corpus words.
+**Plain-text format** — no markup at all, either per comment
+(`<comment_id>.txt`) or combined for the whole video
+(`<video>_combined.txt`, one comment per paragraph, blank line between
+each). The `plain/` folder is the one to point AntConc or any other
+concordancer at, since those tools otherwise read XML tag names and
+attributes as if they were corpus words.
 
 Before generating, you can choose which metadata fields (`video_id`,
 `is_reply`, `timestamp`, `like_count`, `reply_count`, `is_favourite`,
