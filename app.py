@@ -44,6 +44,75 @@ st.caption(
     "plain, tag-free .txt for corpus tools like AntConc."
 )
 
+with st.expander("\U0001F4D6 Tutorial — how to use this app", expanded=True):
+    st.markdown(
+        """
+This app doesn't scrape or collect comments itself — it takes comments
+you've **already gathered** from somewhere (a scraper, an export tool, a
+manual copy-paste job) and turns them into files ready for corpus or
+linguistic analysis, plus lets you explore them directly without needing
+a separate concordancer.
+
+Try it immediately with the sample file at `sample_data/sample_comments.csv`
+before using your own data.
+
+### Step 1 — Upload comments
+Upload a `.csv`, `.xlsx`/`.xls`, or `.json` file. Column names are
+matched case-insensitively and a few common aliases are accepted (e.g.
+`is_favorited` → `is_favourite`).
+
+**Required columns:** `comment_id`, `video_id`, `is_reply`, `text`,
+`timestamp`, `like_count`, `reply_count`, `is_favourite`, `is_pinned`.
+
+**Optional columns** (used only to name output folders/files nicely):
+`title` (or `video_title`), `upload_date` (or `date`). Without these,
+folders are just named by `video_id`.
+
+JSON can be a flat list of comment objects, an object with a top-level
+`"comments"` list, or an object with a `"videos"` list where each video
+has its own nested `"comments"` list.
+
+### Step 2 — Concordance tools
+Once comments are uploaded, explore them right in the app — scoped to
+one video or all of them at once:
+
+- **KWIC search** — find a word or phrase and see it in context, with
+  adjustable context width, whole-word matching, and case sensitivity.
+- **Word frequency** — the most common words, with optional stopword
+  removal and a minimum word length.
+- **Collocates** — words that co-occur near a word you specify, within
+  an adjustable window.
+
+Every tab's results can be downloaded as CSV. This step doesn't require
+generating any files first — it works straight off the uploaded data.
+
+### Step 3 — Generate corpus files
+Pick an output folder, choose which metadata fields should appear as tags
+in the XML-tagged `.txt` files (the `.xlsx` and plain-text output always
+include every field regardless of this choice), then click **Generate**.
+This writes, for every video in your data:
+
+- `{video}.xlsx` in the output folder's root — all comments, 9 columns.
+- `tagged/{video}/{comment_id}.txt` — one XML-tagged file per comment
+  (NST-corpus style: `<comment id="...">`, metadata tags, the comment
+  text, `( END )`).
+- `plain/{video}/{comment_id}.txt` — the same comment with no markup
+  at all.
+- `plain/{video}/{video}_combined.txt` — all of that video's comments
+  concatenated into one file, one per paragraph.
+
+Point AntConc or any other concordancer at the `plain/` folder, not
+`tagged/` — those tools otherwise read XML tag names as if they were
+corpus words. Re-running Generate for the same video replaces its output
+rather than merging with whatever was there before.
+
+### Step 4 — Download
+A **Preview folder structure** panel shows the output as a tree so you can
+see what you're getting before downloading. Click the download button to
+get everything as a single `.zip`.
+"""
+    )
+
 # ── Step 1: upload & preview ────────────────────────────────────────────────
 st.header("1\uFE0F\u20E3 Upload comments")
 
