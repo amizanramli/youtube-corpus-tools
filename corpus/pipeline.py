@@ -26,17 +26,17 @@ def run_corpus_export(df: pd.DataFrame, output_dir: str,
         upload_date = sub["upload_date"].iloc[0] if "upload_date" in sub.columns else ""
 
         base_name = ex.build_base_name(vid, title, upload_date)
-        video_dir = out / base_name
 
         comments = sub.to_dict(orient="records")
         log(f"[{i}/{n}] {base_name}  ({len(comments)} comments)")
 
         xlsx_path, plain_path = ex.save_video_comments(
-            video_dir, base_name, comments, xml_meta_fields=xml_meta_fields
+            out, base_name, comments, xml_meta_fields=xml_meta_fields
         )
         results.append({
             "video_id": vid, "title": title, "n_comments": len(comments),
-            "folder": str(video_dir),
+            "tagged_folder": str(xlsx_path.parent),
+            "plain_folder": str(plain_path.parent),
         })
 
         if progress:

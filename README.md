@@ -67,15 +67,19 @@ Each tab's results can be downloaded as CSV.
 
 ## Output
 
-For **each video** in the uploaded data, a folder is created:
+Output is split into two top-level folders — tagged data and tag-free plain
+text — each with a per-video subfolder:
 
 ```
 corpus_output/
-└── 20260103_My Video One_AAA111/
-    ├── 20260103_My Video One_AAA111.xlsx        ← all comments, 9 columns
-    ├── 20260103_My Video One_AAA111_plain.txt   ← all comments, plain text, no tags
-    ├── Ugz1abc.txt                               ← one comment, XML-tagged
-    └── Ugz2def.txt
+├── tagged/
+│   └── 20260103_My Video One_AAA111/
+│       ├── 20260103_My Video One_AAA111.xlsx   ← all comments, 9 columns
+│       ├── Ugz1abc.txt                          ← one comment, XML-tagged
+│       └── Ugz2def.txt
+└── plain/
+    └── 20260103_My Video One_AAA111/
+        └── 20260103_My Video One_AAA111_plain.txt  ← all comments, no tags
 ```
 
 **XML-tagged comment format** (`<comment_id>.txt`):
