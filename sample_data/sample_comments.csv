@@ -1,0 +1,4 @@
+comment_id,video_id,title,upload_date,is_reply,text,timestamp,like_count,reply_count,is_favourite,is_pinned
+Ugz1abc,AAA111,My Video One,20260103,False,"Great video! Thanks & keep it up <3",1700000000,12,1,False,True
+Ugz2def,AAA111,My Video One,20260103,True,"Agreed!",1700000100,3,0,True,False
+Ugz3ghi,BBB222,Another Video,20260104,False,"Interesting perspective, I hadn't thought of it that way.",1700000200,7,0,False,False
