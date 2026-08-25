@@ -14,6 +14,7 @@ concordancers, which otherwise read XML tag names as literal corpus words.
 """
 
 import re
+import shutil
 from pathlib import Path
 from xml.sax.saxutils import escape, quoteattr
 
@@ -67,11 +68,18 @@ def save_video_comments(output_dir: Path, base_name: str, comments: list,
     output_dir/tagged/{base_name}/; and, into output_dir/plain/{base_name}/,
     one tag-free txt per comment plus one combined txt with all of that
     video's comments.
+
+    Re-running this for the same base_name replaces its output rather than
+    merging with it: the tagged/plain subfolders are cleared first, so a
+    comment removed since the last run (or a stale file left by an older
+    version of this script) doesn't linger alongside the new files.
     Returns (xlsx_path, combined_plain_txt_path).
     """
     tagged_dir = output_dir / "tagged" / base_name
     plain_dir = output_dir / "plain" / base_name
     output_dir.mkdir(parents=True, exist_ok=True)
+    shutil.rmtree(tagged_dir, ignore_errors=True)
+    shutil.rmtree(plain_dir, ignore_errors=True)
     tagged_dir.mkdir(parents=True, exist_ok=True)
     plain_dir.mkdir(parents=True, exist_ok=True)
 
