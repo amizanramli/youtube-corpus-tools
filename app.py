@@ -24,6 +24,7 @@ from corpus.concordance import collocates, kwic_search, word_frequencies
 from corpus.export import XML_META_FIELDS
 from corpus.loader import CorpusLoadError, load_table
 from corpus.pipeline import run_corpus_export
+from corpus.tree import tree_string
 
 st.set_page_config(page_title="Corpus Export Tools", page_icon="\U0001F4C4", layout="wide")
 
@@ -199,6 +200,9 @@ st.header("4\uFE0F\u20E3 Download")
 
 out_path = Path(output_dir)
 if out_path.exists() and any(out_path.iterdir()):
+    with st.expander("\U0001F4C1 Preview folder structure", expanded=True):
+        st.code(tree_string(out_path), language=None)
+
     # Build the zip once per output (cached in session state so it isn't
     # rebuilt on every rerun) and offer it directly \u2014 no separate "prepare"
     # click. A fresh Generate resets zip_path to None, so it's rebuilt then.
