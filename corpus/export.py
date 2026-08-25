@@ -101,7 +101,14 @@ def save_video_comments(output_dir: Path, base_name: str, comments: list,
 
 
 def build_base_name(video_id: str, title: str = "", upload_date: str = "") -> str:
-    """'<date>_<title>_<video_id>', dropping any pieces that are missing."""
-    parts = [p for p in (str(upload_date).strip(), safe_filename(title), str(video_id).strip())
+    """'<date>_<title>_<video_id>', dropping any pieces that are missing.
+
+    A blank title is dropped rather than turned into the literal word
+    "untitled" — safe_filename's fallback for that is meant for filenames
+    that can't be empty (e.g. per-comment files), not for this piece.
+    """
+    title = str(title).strip()
+    title_part = safe_filename(title) if title and title.lower() != "nan" else ""
+    parts = [p for p in (str(upload_date).strip(), title_part, str(video_id).strip())
              if p and p.lower() != "nan"]
     return "_".join(parts) if parts else "untitled_video"
