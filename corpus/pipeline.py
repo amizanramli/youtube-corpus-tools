@@ -35,7 +35,8 @@ def run_corpus_export(df: pd.DataFrame, output_dir: str,
         )
         results.append({
             "video_id": vid, "title": title, "n_comments": len(comments),
-            "tagged_folder": str(xlsx_path.parent),
+            "xlsx": str(xlsx_path),
+            "tagged_folder": str(out / "tagged" / base_name),
             "plain_folder": str(plain_path.parent),
         })
 

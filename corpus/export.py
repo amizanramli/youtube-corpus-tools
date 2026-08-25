@@ -1,12 +1,13 @@
 """
-Writes, for one video's worth of comments, into two top-level folders under
-the output dir, each with a per-video subfolder named {base_name}:
-  tagged/{base_name}/{base_name}.xlsx          one row per comment, 9 columns
-  tagged/{base_name}/{comment_id}.txt          one XML-tagged file per
-                                                comment (NST-corpus style)
-  plain/{base_name}/{comment_id}.txt           one tag-free file per comment
-  plain/{base_name}/{base_name}_combined.txt   all of that video's comments
-                                                concatenated into one file
+Writes, for one video's worth of comments, into the output dir:
+  {base_name}.xlsx                             one row per comment, 9
+                                                 columns — sits in the
+                                                 output dir's root
+  tagged/{base_name}/{comment_id}.txt           one XML-tagged file per
+                                                 comment (NST-corpus style)
+  plain/{base_name}/{comment_id}.txt            one tag-free file per comment
+  plain/{base_name}/{base_name}_combined.txt    all of that video's comments
+                                                 concatenated into one file
 
 Everything under plain/ has no tags at all — for AntConc or other
 concordancers, which otherwise read XML tag names as literal corpus words.
@@ -62,19 +63,21 @@ def save_video_comments(output_dir: Path, base_name: str, comments: list,
     xml_meta_fields: which metadata fields to include in the XML-tagged
     .txt files (see comment_to_xml). Defaults to all of them.
 
-    Writes xlsx + one XML txt per comment into output_dir/tagged/{base_name}/;
-    and, into output_dir/plain/{base_name}/, one tag-free txt per comment
-    plus one combined txt with all of that video's comments.
+    Writes xlsx into output_dir/ (root); one XML txt per comment into
+    output_dir/tagged/{base_name}/; and, into output_dir/plain/{base_name}/,
+    one tag-free txt per comment plus one combined txt with all of that
+    video's comments.
     Returns (xlsx_path, combined_plain_txt_path).
     """
     tagged_dir = output_dir / "tagged" / base_name
     plain_dir = output_dir / "plain" / base_name
+    output_dir.mkdir(parents=True, exist_ok=True)
     tagged_dir.mkdir(parents=True, exist_ok=True)
     plain_dir.mkdir(parents=True, exist_ok=True)
 
     # ── Excel ──────────────────────────────────────────────────────────────
     df_c = pd.DataFrame(comments)[COMMENT_COLS]
-    xlsx_path = tagged_dir / f"{base_name}.xlsx"
+    xlsx_path = output_dir / f"{base_name}.xlsx"
     df_c.to_excel(xlsx_path, index=False, engine="openpyxl")
 
     # ── XML-tagged txt, one file per comment ──────────────────────────────

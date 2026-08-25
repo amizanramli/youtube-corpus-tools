@@ -67,14 +67,15 @@ Each tab's results can be downloaded as CSV.
 
 ## Output
 
-Output is split into two top-level folders — tagged data and tag-free plain
-text — each with a per-video subfolder:
+One `.xlsx` per video sits in the output dir's root; `.txt` files are split
+into two top-level folders — tagged data and tag-free plain text — each with
+a per-video subfolder:
 
 ```
 corpus_output/
+├── 20260103_My Video One_AAA111.xlsx    ← all comments, 9 columns
 ├── tagged/
 │   └── 20260103_My Video One_AAA111/
-│       ├── 20260103_My Video One_AAA111.xlsx        ← all comments, 9 columns
 │       ├── Ugz1abc.txt                                ← one comment, XML-tagged
 │       └── Ugz2def.txt
 └── plain/
